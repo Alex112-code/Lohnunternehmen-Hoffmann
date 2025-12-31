@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lohnunternehmen Hoffmann</title>
+  <style>
+    body { margin:0; font-family: Arial, Helvetica, sans-serif; background:#f4f6f8; color:#333; }
+    header { background:#2f6f3e; color:white; padding:20px; text-align:center; }
+    #adminButton { position:fixed; top:20px; right:20px; padding:10px 15px; background:#255a32; color:white; border:none; border-radius:6px; cursor:pointer; z-index:100; }
+    nav { display:flex; justify-content:center; gap:15px; background:#1f4f2c; padding:10px; }
+    nav button { background:#fff; border:none; padding:10px 16px; border-radius:6px; cursor:pointer; font-weight:bold; }
+    nav button:hover { background:#e0e0e0; }
+    main { max-width:1000px; margin:20px auto; padding:20px; background:white; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.1); }
+    section { display:none; }
+    section.active { display:block; }
+    h2 { color:#2f6f3e; }
+    .editable { border:1px dashed #ccc; padding:10px; border-radius:4px; background:#fafafa; }
+    form label { display:block; margin-top:10px; font-weight:bold; }
+    form input, form textarea, form select { width:100%; padding:8px; margin-top:4px; border-radius:4px; border:1px solid #ccc; }
+    form button { margin-top:15px; padding:10px 16px; background:#2f6f3e; color:white; border:none; border-radius:6px; cursor:pointer; }
+    form button:hover { background:#255a32; }
+    footer { text-align:center; padding:15px; margin-top:30px; background:#1f4f2c; color:white; }
+    #loginModal { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; z-index:1000; }
+    #loginBox { background:white; padding:20px; border-radius:8px; text-align:center; width:300px; }
+    #loginBox input { width:80%; margin-top:10px; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Lohnunternehmen Hoffmann</h1>
+    <p>Ihr zuverlässiger Partner in der Landwirtschaft</p>
+  </header>
+
+  <button id="adminButton" onclick="showLoginModal()" style="display:block;">Admin-Bereich</button>
+
+  <nav>
+    <button onclick="showSection('zeiten')">Öffnungszeiten</button>
+    <button onclick="showSection('dienstleistungen')">Dienstleistungen</button>
+    <button onclick="showSection('personal')">Personal</button>
+    <button onclick="showSection('auftrag')">Auftragsformular</button>
+  </nav>
+
+  <main>
+    <section id="zeiten" class="active">
+      <h2>Öffnungszeiten</h2>
+      <div class="editable" contenteditable="false" data-protected="true">
+        <p>Montag – Freitag: 08:00 – 18:00 Uhr</p>
+        <p>Samstag/Sonntag: 08:00 – 12:00 Uhr</p>
+        <p></p>
+      </div>
+    </section>
+
+    <section id="dienstleistungen">
+      <h2>Dienstleistungen</h2>
+      <div>
+        <input type="text" id="serviceInput" placeholder="Neue Dienstleistung" disabled />
+        <button type="button" onclick="addService()" disabled>Hinzufügen</button>
+      </div>
+      <ul id="serviceList" data-protected="true"></ul>
+    </section>
+
+    <section id="personal">
+      <h2>Personal</h2>
+      <div class="editable" contenteditable="false" data-protected="true">
+        <p>Julian Hoffmann – Geschäftsführer/Disposition</p>
+        <p>Andreas Berger – Mitarbeiter</p>
+      </div>
+    </section>
+
+    <section id="auftrag">
+      <h2>Auftragsformular</h2>
+      <form id="auftragForm">
+        <label for="name">Name</label>
+        <input type="text" id="name" placeholder="Ihr Name" required />
+
+        <label for="betrieb">Betrieb / Firma</label>
+        <input type="text" id="betrieb" placeholder="Name des Betriebs" required />
+
+        <label for="dienst">Gewünschte Dienstleistung</label>
+        <select id="dienst" required></select>
+
+        <label for="feld">Feld / Fläche</label>
+        <input type="text" id="feld" placeholder="z. B. Feldname oder Lage" required />
+
+        <label for="nachricht">Auftragsdetails</label>
+        <textarea id="nachricht" rows="5" placeholder="Beschreiben Sie Ihren Auftrag" required></textarea>
+
+        <button type="button" onclick="exportPDF()">Als PDF exportieren</button>
+        <button type="button" onclick="sendToDiscord()">An Discord senden</button>
+      </form>
+    </section>
+  </main>
+
+  <footer>
+    <p>© 2025 Lohnunternehmen Mustermann</p>
+  </footer>
+
+  <div id="loginModal" style="display:none;">
+    <div id="loginBox">
+      <h3>Admin-Passwort eingeben</h3>
+      <input type="password" id="globalPassword" placeholder="Passwort eingeben" />
+      <button onclick="checkGlobalPassword()">Freischalten</button>
+      <p id="loginMsg"></p>
+    </div>
+  </div>
+
+  <script>
+    const GLOBAL_PASSWORD = '1234';
+    let editingEnabled = false;
+
+    function showSection(id) {
+      document.querySelectorAll('main section').forEach(sec => sec.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+
+    function showLoginModal() {
+      document.getElementById('loginModal').style.display = 'flex';
+    }
+
+    function checkGlobalPassword() {
+      const pw = document.getElementById('globalPassword').value;
+      if (pw === GLOBAL_PASSWORD) {
+        editingEnabled = true;
+        document.getElementById('loginModal').style.display = 'none';
+        enableProtectedEdits();
+      } else {
+        document.getElementById('loginMsg').textContent = 'Falsches Passwort';
+      }
+    }
+
+    function enableProtectedEdits() {
+      document.querySelectorAll('[data-protected]').forEach(el => {
+        el.contentEditable = true;
+        el.oninput = saveAllContent;
+      });
+      document.getElementById('serviceInput').disabled = false;
+      document.querySelector('#dienstleistungen button').disabled = false;
+    }
+
+    /* ===== DIENSTLEISTUNGEN ===== */
+    function addService() {
+      if (!editingEnabled) return;
+      const input = document.getElementById('serviceInput');
+      const text = input.value.trim();
+      if (!text) return;
+      const li = document.createElement('li');
+      li.textContent = text;
+      li.contentEditable = true;
+      li.oninput = saveServices;
+      li.ondblclick = () => { li.remove(); saveServices(); updateServiceSelect(); };
+      document.getElementById('serviceList').appendChild(li);
+      input.value = '';
+      saveServices();
+      updateServiceSelect();
+    }
+
+    function saveServices() {
+      const services = [];
+      document.querySelectorAll('#serviceList li').forEach(li => services.push(li.textContent));
+      localStorage.setItem('services', JSON.stringify(services));
+    }
+
+    function loadServices() {
+      const data = JSON.parse(localStorage.getItem('services')) || [
+        'Pflügen – 300€ / ha',
+        'Grubbern – 200€ / ha',
+        'Mulchen – 400€ / ha',
+        'Steine sammeln – 500€ / ha',
+        'Säen Getreide – 600€ / ha',
+        'Säen Einzelkorn – 700€ / ha',
+        'Pflanzenschutz – 1200€ / ha',
+        'Düngen – 900€ / ha',
+        'Kalken – 500€ / ha',
+        'Striegeln / Hacken – 200€ / ha',
+        'Walzen – 300€ / ha',
+        'Getreide ernten – 800€ / ha',
+        'Mais / Sonnenblumen – 700€ / ha',
+        'Mais häckseln – 1200€ / ha',
+        'Mähen – 200€ / ha',
+        'Wenden – 100€ / ha',
+        'Schwaden – 200€ / ha',
+        'Pressen Rund – 600€ / ha',
+        'Pressen Quader – 400€ / ha',
+        'Wickeln – 100€ / ha',
+        'Rüben ernten – 1500€ / ha',
+        'Kartoffel ernten – 2000€ / ha',
+        'Abfahren – 300€ / Hänger',
+        'Anfahrtskosten – 100€ / km',
+        'Pro Betriebsstunde – 200€'
+      ];
+      const list = document.getElementById('serviceList');
+      list.innerHTML = '';
+      data.forEach(text => {
+        const li = document.createElement('li');
+        li.textContent = text;
+        li.contentEditable = false;
+        li.oninput = saveServices;
+        li.ondblclick = () => { li.remove(); saveServices(); updateServiceSelect(); };
+        list.appendChild(li);
+      });
+      updateServiceSelect();
+    }
+
+    function updateServiceSelect() {
+      const select = document.getElementById('dienst');
+      const current = select.value;
+      select.innerHTML = '';
+      document.querySelectorAll('#serviceList li').forEach(li => {
+        const option = document.createElement('option');
+        option.value = li.textContent;
+        option.textContent = li.textContent;
+        select.appendChild(option);
+      });
+      select.value = current;
+    }
+
+    /* ===== ALLGEMEINE INHALTE ===== */
+    function saveAllContent() {
+      document.querySelectorAll('[data-protected]').forEach((el, i) => {
+        localStorage.setItem('content_' + i, el.innerHTML);
+      });
+    }
+
+    function loadAllContent() {
+      document.querySelectorAll('[data-protected]').forEach((el, i) => {
+        const saved = localStorage.getItem('content_' + i);
+        if (saved) el.innerHTML = saved;
+      });
+    }
+
+    loadAllContent();
+    loadServices();
+      
+    /* ===== PDF EXPORT ===== */
+    function exportPDF() {
+      const name = document.getElementById('name').value;
+      const betrieb = document.getElementById('betrieb').value;
+      const dienst = document.getElementById('dienst').value;
+      const feld = document.getElementById('feld').value;
+      const details = document.getElementById('nachricht').value;
+
+      if (!name || !betrieb || !dienst || !feld || !details) {
+        alert('Bitte alle Felder ausfüllen');
+        return;
+      }
+
+      const win = window.open('', '', 'width=800,height=900');
+      win.document.write(`
+        <html><head><title>Auftrag</title>
+        <style>
+          body { font-family: Arial; padding: 30px; }
+          h1 { color: #2f6f3e; }
+          p { margin: 8px 0; }
+        </style>
+        </head><body>
+        <h1>Auftrag – Lohnunternehmen</h1>
+        <p><strong>Name:</strong> ${name}</p>
+        <p><strong>Betrieb / Firma:</strong> ${betrieb}</p>
+        <p><strong>Dienstleistung:</strong> ${dienst}</p>
+        <p><strong>Feld / Fläche:</strong> ${feld}</p>
+        <p><strong>Auftragsdetails:</strong></p>
+        <p>${details}</p>
+        <br><br>
+        <p>Datum: ${new Date().toLocaleDateString()}</p>
+        </body></html>
+      `);
+      win.document.close();
+      win.focus();
+      win.print();
+    }
+  
+    /* ===== DISCORD EXPORT ===== */
+    const DISCORD_WEBHOOK_URL = "HIER_DEINE_DISCORD_WEBHOOK_URL_EINTRAGEN";
+
+    function sendToDiscord() {
+      const name = document.getElementById('name').value;
+      const betrieb = document.getElementById('betrieb').value;
+      const dienst = document.getElementById('dienst').value;
+      const feld = document.getElementById('feld').value;
+      const details = document.getElementById('nachricht').value;
+
+      if (!name || !betrieb || !dienst || !feld || !details) {
+        alert('Bitte alle Felder ausfüllen');
+        return;
+      }
+
+      const payload = {
+        content: "📄 **Neuer Auftrag eingegangen**",
+        embeds: [{
+          title: "Auftragsdetails",
+          color: 3066993,
+          fields: [
+            { name: "Name", value: name, inline: true },
+            { name: "Betrieb / Firma", value: betrieb, inline: true },
+            { name: "Dienstleistung", value: dienst, inline: false },
+            { name: "Feld / Fläche", value: feld, inline: false },
+            { name: "Auftragsdetails", value: details, inline: false }
+          ],
+          footer: { text: "Lohnunternehmen – " + new Date().toLocaleString() }
+        }]
+      };
+
+      fetch(DISCORD_WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      .then(res => {
+        if (res.ok) alert('Auftrag wurde an Discord gesendet');
+        else alert('Fehler beim Senden an Discord');
+      })
+      .catch(() => alert('Discord nicht erreichbar'));
+    }
+  </script>
+</body>
+</html>
