@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Lohnunternehmen Hoffmann</title>
+  <title>Lohnunternehmen</title>
   <style>
     body { margin:0; font-family: Arial, Helvetica, sans-serif; background:#f4f6f8; color:#333; }
     header { background:#2f6f3e; color:white; padding:20px; text-align:center; }
@@ -29,7 +29,7 @@
 <body>
 
   <header>
-    <h1>Lohnunternehmen Hoffmann</h1>
+    <h1>Lohnunternehmen Mustermann</h1>
     <p>Ihr zuverlässiger Partner in der Landwirtschaft</p>
   </header>
 
@@ -47,8 +47,8 @@
       <h2>Öffnungszeiten</h2>
       <div class="editable" contenteditable="false" data-protected="true">
         <p>Montag – Freitag: 08:00 – 18:00 Uhr</p>
-        <p>Samstag/Sonntag: 08:00 – 12:00 Uhr</p>
-        <p></p>
+        <p>Samstag: 08:00 – 12:00 Uhr</p>
+        <p>Sonntag: Geschlossen</p>
       </div>
     </section>
 
@@ -64,8 +64,8 @@
     <section id="personal">
       <h2>Personal</h2>
       <div class="editable" contenteditable="false" data-protected="true">
-        <p>Julian Hoffmann – Geschäftsführer/Disposition</p>
-        <p>Andreas Berger – Mitarbeiter</p>
+        <p>Max Mustermann – Geschäftsführer</p>
+        <p>Anna Beispiel – Disposition & Büro</p>
       </div>
     </section>
 
@@ -272,7 +272,7 @@
     }
   
     /* ===== DISCORD EXPORT ===== */
-    const DISCORD_WEBHOOK_URL = "HIER_DEINE_DISCORD_WEBHOOK_URL_EINTRAGEN";
+    const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1455602286972637199/IdRwSfsMvbvkxYpbTad47fznaYv40TmILjyppGfQ6MLozsMJ_H6oEqFVt_bTLV94SGbK";
 
     function sendToDiscord() {
       const name = document.getElementById('name').value;
@@ -302,7 +302,7 @@
         }]
       };
 
-      fetch(https://discord.com/api/webhooks/1455602286972637199/IdRwSfsMvbvkxYpbTad47fznaYv40TmILjyppGfQ6MLozsMJ_H6oEqFVt_bTLV94SGbK, {
+      fetch(DISCORD_WEBHOOK_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -316,4 +316,3 @@
   </script>
 </body>
 </html>
-
